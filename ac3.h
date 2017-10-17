@@ -4,7 +4,7 @@
 #include<windows.h>
 
 #define maxn 2000000    //一层节点的最大数 
-#define maxnodenum 10000000    //最大节点数 
+#define maxnodenum 5000000    //最大节点数 
 #define maxpnum 1300000       //最大模式串数 
 #define buffersize 50000000  //搜索串缓存区大小 
 
@@ -25,7 +25,7 @@ typedef struct TSNode{
 	int lchild, rchild;                 //同级字节TSNode 
 	int next;                         //下一字节对应的TSNode 
 	int faillink;                     //失效链接
-	int outlink;                      //输出链接
+//	int outlink;                      //输出链接
 	int stateId;                        //状态id，不是串结束为0，串结束为串id 
 } TSNode, *TSTree;
 TSNode ts[maxnodenum+1]; 
@@ -33,7 +33,7 @@ TSNode ts[maxnodenum+1];
 //************AC自动机结构******************* 
 typedef struct {
   int root;                         //三叉树根节点 
-  long startPoint, cNum, currentPoint;  //文件位置起始点，搜索串长度 ,目前串位置 
+  long startPoint, cNum;  //文件位置起始点，搜索串长度 
   int  nodeNum;                       //结点个数
   char* S;                             //搜索串序列 
   int currentState;         //当前搜索到的节点
@@ -52,7 +52,7 @@ int ac_implement(AC_STRUCT* node);
 //搜索之前对AC自动机初始化
 void search_init(AC_STRUCT* node, long cNum, char* S); 
 //AC搜索
-int ac_search(AC_STRUCT* node);
+void ac_search(AC_STRUCT* node);
 
 //***********队列结构************************** 
 typedef struct{

@@ -21,7 +21,8 @@ int main(int argc, char* argv[])
     {
     	char* p = malloc(sizeof(char) * 100);
     	fgets(p,100,fp);
-    	p[strlen(p)-1]='\0';     //去掉换行符 
+    	if(!feof(fp))
+    	   p[strlen(p)-1]='\0';     //去掉换行符 
     	sline[i++]=p;	
 	}
 	end=GetTickCount();
@@ -33,9 +34,7 @@ int main(int argc, char* argv[])
 	end=GetTickCount();
 	printf("洗牌结束 %ds\n",(end - start)/1000);
 	for(j=1;j<=i;j++)
-	{
 		ac_add_string(ACTree, Patterns[j]->P, Patterns[j]->length, j);
-	}
 	fclose(fp);
 	end=GetTickCount();
 	printf("插入结束 %ds\n",(end - start)/1000);
@@ -43,7 +42,6 @@ int main(int argc, char* argv[])
 	ac_implement(ACTree);
 	end=GetTickCount();
     printf("自动机完成 %ds\n",(end - start)/1000);
-    printf("%d\n",ACTree->nodeNum);
 	if((strfp = fopen(argv[1],"rb"))== NULL)
     {
     	printf("file string.txt open failed!\n");
@@ -131,13 +129,7 @@ int dequeue(Queue* q)
 }
 
 
-/*
- * ac_alloc
- *
- * Creates a new AC_STRUCT structure and initializes its fields.
- *
- * Returns:  A dynamically allocated AC_STRUCT structure.
- */
+//给AC结构体分配内存 
 AC_STRUCT * ac_alloc()
 {
   AC_STRUCT *node;
@@ -157,7 +149,7 @@ AC_STRUCT * ac_alloc()
 		ts[i].lchild=maxnodenum;
 		ts[i].rchild=maxnodenum;
 		ts[i].faillink=maxnodenum;
-		ts[i].outlink=maxnodenum;
+//		ts[i].outlink=maxnodenum;
   }
   return node;
 }
@@ -336,9 +328,6 @@ int ac_implement(AC_STRUCT* node)
 								if(ts[tempNode].data==ts[currentNode].data)
 								{
 									ts[currentNode].faillink=tempNode;
-									//计算outlink 
-									if(ts[tempNode].stateId!=0)
-										ts[currentNode].outlink=tempNode;
 									flag=0;
 								}
 							}
@@ -364,15 +353,13 @@ void search_init(AC_STRUCT* node, long cNum, char* S)
 	node->startPoint = node->startPoint + node->cNum;
 	node->cNum = cNum;
 	node->S = S;
-	node->currentPoint = 0;
 } 
 
 
 //AC搜索
-int ac_search(AC_STRUCT* node)
+void ac_search(AC_STRUCT* node)
 {
 	long i;
-	int flag;
 	char* S = node->S;
 	int currentState,child,outNode;
 	if(node->startPoint == 0)
@@ -393,26 +380,13 @@ int ac_search(AC_STRUCT* node)
 			if(ts[child].data == S[i])
 			{
 				currentState = child;
-				node->currentState = child;
-				node->currentPoint = i+1; 
-				if(ts[child].stateId!=0)
+				outNode=child;
+				while(outNode!=0)
 				{
-					outNode=child;
-					while(outNode!=maxnodenum)
-					{
-						fprintf(resultfp,"%s  %d\n",Patterns[ts[outNode].stateId]->P, node->startPoint+node->currentPoint-Patterns[ts[outNode].stateId]->length);
-						outNode = ts[outNode].outlink;
-					}
+					if(ts[outNode].stateId!=0)
+				 		fprintf(resultfp,"%s  %d\n",Patterns[ts[outNode].stateId]->P, node->startPoint+i+1-Patterns[ts[outNode].stateId]->length);
+					outNode=ts[outNode].faillink;
 				}
-				else if(ts[child].outlink!=maxnodenum)
-				{
-					outNode=ts[child].outlink;
-					while(outNode!=maxnodenum)
-					{
-						fprintf(resultfp,"%s  %d\n",Patterns[ts[outNode].stateId]->P, node->startPoint+node->currentPoint-Patterns[ts[outNode].stateId]->length);
-						outNode = ts[outNode].outlink;
-					}
-				} 
 				break;
 			}
 			else if(S[i] > ts[child].data)
@@ -421,8 +395,8 @@ int ac_search(AC_STRUCT* node)
 				child = ts[child].lchild;
 				
 		}
-			 
 	}
+	node->currentState = currentState;
 }
 
 //快排，给模式串排序 
